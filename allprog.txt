@@ -1,0 +1,250 @@
+1
+
+import numpy as np, matplotlib.pyplot as plt
+
+
+x=np.arange(1,6)
+plt.bar(x,[100,120,90,150,110],.6)
+plt.bar(x,[70,80,60,120,90],.36); plt.title("Bar"); plt.show()
+
+x=np.arange(1,11); y=np.linspace(30000,75000,10)
+plt.scatter(x,y); plt.title("Scatter"); plt.show()
+
+d=np.random.normal(50,10,1000)
+n,b,_=plt.hist(d,5,edgecolor='k')
+for i in range(len(n)):
+    plt.text((b[i]+b[i+1])/2,n[i]+2,int(n[i]),ha='center')
+plt.title("Hist"); plt.show()
+
+plt.pie([15000,17500,22500,25000,20000],labels=list("ABCDE"),
+        explode=[0,0,.1,0,0],autopct='%1.1f%%'); plt.axis('equal'); plt.show()
+
+plt.plot(x,y,'o--'); plt.title("Line"); plt.show()
+
+plt.barh(x,y); plt.title("H-Bar"); plt.show()
+
+
+
+2a
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+
+X = np.arange(1,11).reshape(-1,1)
+y = np.linspace(30000,75000,10)
+
+Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=40)
+model = LinearRegression().fit(Xtr,ytr)
+y_pred = model.predict(Xte)
+
+
+plt.scatter(Xtr,ytr,label='train'); plt.scatter(Xte,yte,label='test',c='r')
+xs = np.linspace(1,10,100).reshape(-1,1)
+plt.plot(xs, model.predict(xs), c='g', label='fit'); plt.legend(); plt.show()
+
+
+2b
+
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+df = pd.DataFrame({
+ 'SF':[1500,1600,1700,1800,1900,2000,2100,2200,2300,2400],
+ 'R':[3,3,4,4,4,5,5,5,6,6],
+ 'A':[10,15,10,12,8,20,5,30,25,40],
+ 'P':[250000,260000,270000,280000,285000,300000,310000,320000,330000,350000]
+})
+
+X,y = df[['SF','R','A']], df['P']
+Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.4,random_state=42)
+
+m = LinearRegression().fit(Xtr,ytr)
+yp = m.predict(Xte)
+
+print("Coef:",m.coef_,"Intercept:",m.intercept_)
+print("MAE:",mean_absolute_error(yte,yp),
+      "RMSE:",np.sqrt(mean_squared_error(yte,yp)),
+      "R2:",r2_score(yte,yp))
+
+plt.scatter(yte, yp); plt.scatter(ytr, m.predict(Xtr));
+plt.xlabel("Actual"); plt.ylabel("Predicted"); plt.show()
+
+
+
+
+3
+
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
+
+X,y = load_breast_cancer(return_X_y=True)
+Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.3,random_state=42)
+
+sc = StandardScaler()
+Xtr = sc.fit_transform(Xtr)
+Xte = sc.transform(Xte)
+
+yp = LogisticRegression(max_iter=500).fit(Xtr,ytr).predict(Xte)
+cm = confusion_matrix(yte,yp)
+
+print("Acc:",accuracy_score(yte,yp),
+      "Prec:",precision_score(yte,yp),
+      "Recall:",recall_score(yte,yp))
+print("CM:\n",cm)
+print(classification_report(yte,yp))
+
+plt.imshow(cm,cmap='Blues'); plt.colorbar()
+plt.xlabel("Predicted"); plt.ylabel("Actual"); plt.show()
+
+
+
+
+4
+import numpy as np
+from collections import Counter
+X = np.array([[1,2],[2,3],[3,1],[6,5]])
+y = ['A','A','B','B']
+p = np.array([3,3])
+def knn(X,y,p,k):
+    d = sorted([(np.linalg.norm(p-x),c) for x,c in zip(X,y)])
+    return Counter([c for _,c in d[:k]]).most_common(1)[0][0]
+for k in [1,2,3]:
+    print(f"k={k} → Class {knn(X,y,p,k)}")
+
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+X,y = load_iris(return_X_y=True)
+Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=42)
+knn = KNeighborsClassifier(n_neighbors=3).fit(Xtr,ytr)
+yp = knn.predict(Xte)
+print("Accuracy:", accuracy_score(yte,yp))
+
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+X,y = load_iris(return_X_y=True)
+Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=42)
+train_acc, test_acc = [], []
+for k in range(1,10):
+    m = KNeighborsClassifier(n_neighbors=k).fit(Xtr,ytr)
+    train_acc.append(m.score(Xtr,ytr))
+    test_acc.append(m.score(Xte,yte))
+plt.plot(range(1,10), train_acc, label="Training dataset Accuracy")
+plt.plot(range(1,10), test_acc, label="Testing dataset Accuracy")
+plt.xlabel("n_neighbors (k)")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+
+
+
+
+
+5
+
+import pandas as pd, matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.preprocessing import LabelEncoder
+
+df = pd.DataFrame({
+ 'O':['Sunny','Sunny','Overcast','Rainy','Rainy','Rainy','Overcast','Sunny','Sunny','Rainy','Sunny','Overcast','Overcast','Rainy'],
+ 'T':['Hot','Hot','Hot','Mild','Cool','Cool','Cool','Mild','Cool','Mild','Mild','Mild','Hot','Mild'],
+ 'W':['Weak','Strong','Weak','Weak','Weak','Strong','Strong','Weak','Weak','Strong','Strong','Weak','Strong','Weak'],
+ 'P':['No','No','Yes','Yes','Yes','No','Yes','No','Yes','No','Yes','Yes','Yes','Yes']
+})
+
+le = LabelEncoder(); df = df.apply(le.fit_transform)
+X,y = df[['O','T','W']], df['P']
+
+clf = DecisionTreeClassifier(criterion='entropy').fit(X,y)
+plot_tree(clf, feature_names=X.columns, class_names=['No','Yes'], filled=True)
+plt.show()
+
+print("Prediction:", clf.predict([[2,0,1]]))
+
+
+
+
+6
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
+from sklearn.decomposition import PCA
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+X = load_iris().data
+X2 = PCA(2).fit_transform(X)
+
+plt.figure(figsize=(9,3))
+for i,(m,t) in enumerate([
+    (KMeans(3).fit_predict(X),'K-Means'),
+    (AgglomerativeClustering(3).fit_predict(X),'Hierarchical'),
+    (DBSCAN().fit_predict(X),'DBSCAN')]):
+    plt.subplot(1,3,i+1); plt.scatter(X2[:,0],X2[:,1],c=m); plt.title(t)
+plt.show()
+
+dendrogram(linkage(X,'ward')); plt.show()
+
+
+7
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
+
+X, y = make_blobs(n_samples=300, centers=3, n_features=5, random_state=42)
+X2 = PCA(2).fit_transform(X)
+plt.figure(figsize=(8,6))
+for i in range(3):
+    plt.scatter(X2[y==i,0], X2[y==i,1], label=f'C{i}')
+plt.legend(); plt.grid(); plt.show()
+
+X3 = PCA(3).fit_transform(X)
+fig = plt.figure(figsize=(10,8))
+ax = fig.add_subplot(111, projection='3d')
+for i in range(3):
+    ax.scatter(*X3[y==i].T, label=f'C{i}')
+ax.legend(); plt.show()
+
+
+8
+
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
+
+X, y = load_digits(return_X_y=True)
+Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2)
+
+svm = SVC(kernel='rbf').fit(Xtr, ytr)
+yp = svm.predict(Xte)
+
+print(classification_report(yte, yp))
+print(confusion_matrix(yte, yp))
+
+plt.figure(figsize=(10,2))
+for i in range(10):
+    plt.subplot(1,10,i+1)
+    plt.imshow(Xte[i].reshape(8,8), cmap='gray')
+    plt.title(f"T:{yte[i]} P:{yp[i]}")
+    plt.axis('off')
+plt.show()
+
