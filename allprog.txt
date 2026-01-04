@@ -109,46 +109,38 @@ plt.xlabel("Predicted"); plt.ylabel("Actual"); plt.show()
 
 
 4
-import numpy as np
+
+import numpy as np, matplotlib.pyplot as plt
 from collections import Counter
-X = np.array([[1,2],[2,3],[3,1],[6,5]])
-y = ['A','A','B','B']
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+
+X1 = np.array([[1,2],[2,3],[3,1],[6,5]])
+y1 = ['A','A','B','B']
 p = np.array([3,3])
-def knn(X,y,p,k):
+
+def knn_manual(X,y,p,k):
     d = sorted([(np.linalg.norm(p-x),c) for x,c in zip(X,y)])
     return Counter([c for _,c in d[:k]]).most_common(1)[0][0]
+
 for k in [1,2,3]:
-    print(f"k={k} → Class {knn(X,y,p,k)}")
-
-
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
+    print(f"k={k} → Class {knn_manual(X1,y1,p,k)}")
 X,y = load_iris(return_X_y=True)
 Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=42)
-knn = KNeighborsClassifier(n_neighbors=3).fit(Xtr,ytr)
-yp = knn.predict(Xte)
-print("Accuracy:", accuracy_score(yte,yp))
 
-
-import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-X,y = load_iris(return_X_y=True)
-Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=42)
+model = KNeighborsClassifier(3).fit(Xtr,ytr)
+print("Accuracy:", model.score(Xte,yte))
 train_acc, test_acc = [], []
 for k in range(1,10):
-    m = KNeighborsClassifier(n_neighbors=k).fit(Xtr,ytr)
+    m = KNeighborsClassifier(k).fit(Xtr,ytr)
     train_acc.append(m.score(Xtr,ytr))
     test_acc.append(m.score(Xte,yte))
-plt.plot(range(1,10), train_acc, label="Training dataset Accuracy")
-plt.plot(range(1,10), test_acc, label="Testing dataset Accuracy")
-plt.xlabel("n_neighbors (k)")
-plt.ylabel("Accuracy")
-plt.legend()
-plt.show()
+
+plt.plot(range(1,10), train_acc, label="Training Accuracy")
+plt.plot(range(1,10), test_acc, label="Testing Accuracy")
+plt.xlabel("k"); plt.ylabel("Accuracy"); plt.legend(); plt.show()
+
 
 
 
@@ -247,4 +239,5 @@ for i in range(10):
     plt.title(f"T:{yte[i]} P:{yp[i]}")
     plt.axis('off')
 plt.show()
+
 
